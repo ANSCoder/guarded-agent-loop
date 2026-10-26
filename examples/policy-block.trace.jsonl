@@ -1,0 +1,5 @@
+{"ts": "2026-10-26T10:12:58.616303+00:00", "run_id": "f09ae0aa27d3", "event": "model", "step": 1, "stop_reason": "tool_use"}
+{"ts": "2026-10-26T10:12:58.616741+00:00", "run_id": "f09ae0aa27d3", "event": "tool_call", "step": 1, "tool": "write_file", "args": "{\"path\": \"notes2.txt\", \"content\": \"hello\"}", "decision": "ask", "allowed": false}
+{"ts": "2026-10-26T10:12:58.616753+00:00", "run_id": "f09ae0aa27d3", "event": "tool_result", "step": 1, "tool": "write_file", "is_error": true, "output": "blocked by policy: write_file is ask"}
+{"ts": "2026-10-26T10:12:58.617733+00:00", "run_id": "f09ae0aa27d3", "event": "model", "step": 2, "stop_reason": "end_turn"}
+{"ts": "2026-10-26T10:12:58.617749+00:00", "run_id": "f09ae0aa27d3", "event": "stop", "step": 2, "reason": "end_turn"}

@@ -1,0 +1,4 @@
+{
+  "prompt": "What is 17 * 23? Use the calculator tool.",
+  "expect_contains": "391"
+}

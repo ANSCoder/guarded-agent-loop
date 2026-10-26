@@ -1,0 +1,4 @@
+{
+  "prompt": "Write the text hello to notes.txt.",
+  "expect_blocked": "write_file"
+}

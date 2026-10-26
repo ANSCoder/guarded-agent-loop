@@ -1,0 +1,4 @@
+{
+  "prompt": "Read CONTEXT.md and tell me the first term it defines.",
+  "expect_contains": "run"
+}

@@ -1,0 +1,5 @@
+{
+  "prompt": "Use the calculator one call at a time, one tool call per message. Calculate 1+1, then 2+2, then 3+3, then 4+4, then 5+5. Do not answer until all five are done.",
+  "expect_stop": "step_cap",
+  "max_steps": 2
+}

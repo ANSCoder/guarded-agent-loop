@@ -1,0 +1,11 @@
+# allow: run now. ask: the user is asked first, and a run with no terminal denies it. deny: never run.
+# A tool with no row here is denied.
+
+[tools.calculator]
+action = "allow"
+
+[tools.read_file]
+action = "allow"
+
+[tools.write_file]
+action = "ask"
