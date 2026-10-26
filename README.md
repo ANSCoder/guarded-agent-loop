@@ -205,15 +205,15 @@ The tests use a scripted fake model and a local stub of the API, so they never c
 
 ```mermaid
 flowchart LR
-    task([task]) --> graph[graph<br/>model node ⇄ tools node]
-    graph --> harness{harness<br/>policy · timeout · output cap · retry}
-    harness -->|allow| tools[tools<br/>calculator · read_file · write_file]
-    harness -->|allow| mcp[MCP servers<br/>config/mcp.toml]
-    harness -->|deny or ask refused| graph
-    tools --> graph
-    mcp --> graph
-    graph --> trace[(traces/*.jsonl)]
-    graph --> ckpt[(checkpoints/*.json)]
+    task(["task"]) --> loop["graph.py<br/>model node and tools node"]
+    loop --> harness{"harness<br/>policy, timeout, output cap, retry"}
+    harness -->|allow| tools["tools<br/>calculator, read_file, write_file"]
+    harness -->|allow| mcp["MCP servers<br/>config/mcp.toml"]
+    harness -->|deny or ask refused| loop
+    tools --> loop
+    mcp --> loop
+    loop --> trace[("traces/*.jsonl")]
+    loop --> ckpt[("checkpoints/*.json")]
 ```
 
 - `graph.py` runs the loop as two named nodes, `model` and `tools`. The `tools` node runs one tool per step. A checkpoint is saved before each step, so a crashed run can resume without rerunning finished tools.
