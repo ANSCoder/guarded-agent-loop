@@ -1,8 +1,8 @@
 # Guarded Agent Loop
 
-A small agent runtime with step caps, per-tool policy, and a trace for every step.
+A starter project for learning how an AI agent loop works, with the guardrails built in: step caps, per-tool policy, and a trace for every step.
 
-It lets a model call tools in a loop, and it stops the loop from running away, blocks tools you have not allowed, and records everything it does. It runs free on a laptop with a local model, or against Claude.
+It lets a model call tools in a loop, and it stops the loop from running away, blocks tools you have not allowed, and records everything it does. It runs free on a laptop with a local model, or against Claude. Use it to study the moving parts of an agent, or as a clean base for your own experiments.
 
 ## Why it exists
 
@@ -14,7 +14,7 @@ An agent loop is easy to write and easy to get wrong. This runtime is built arou
 
 ## Who it is for
 
-It is a good way to **learn how an agent loop works**. The whole runtime is about 1,000 lines with no framework, so you can read every step: the model call, the policy check, the tool run, the trace, the checkpoint. A suggested reading order:
+Developers who want to **learn how an agent loop works** by reading and running a small, complete one. The whole runtime is about 1,000 lines with no framework, so you can read every step: the model call, the policy check, the tool run, the trace, the checkpoint. A suggested reading order:
 
 1. `config.py`: the settings.
 2. `loop.py`: one model call and one tool call.
@@ -23,7 +23,7 @@ It is a good way to **learn how an agent loop works**. The whole runtime is abou
 5. `tools/files.py`: how a tool is kept inside its workspace.
 6. `trace.py` and `cli.py`: the log, and how it is read back.
 
-It is not a framework or a production service. It runs one task at a time and has no streaming, no parallel tool calls and no sandbox around tools. See [What breaks](#what-breaks).
+It is a learning project, not a framework or a production service. It runs one task at a time and has no streaming, no parallel tool calls and no sandbox around tools. See [What breaks](#what-breaks).
 
 ## Quickstart (free, local, light)
 
@@ -161,7 +161,7 @@ There are four levels. The first three need no model and cost nothing. CI runs t
 **1. Unit tests (a few seconds)**
 
 ```bash
-pytest                              # all 54 tests
+pytest                              # all 55 tests
 pytest tests/test_files.py -v       # one file, with each test named
 pytest -k blocked                   # only tests whose name contains "blocked"
 ```
@@ -197,7 +197,7 @@ The tests use a scripted fake model and a local stub of the API, so they never c
 | `test_calculator.py` | Arithmetic works. Powers, names and function calls are refused. |
 | `test_limits.py` | A 401 is not retried. A 429 or 5xx is retried until it clears. |
 | `test_openai_compat.py` | Tool calls and `length` stops are read correctly. Cut-off tool arguments become empty input. A reply with no `choices` is a clear error. `reasoning_effort` is sent only when set. |
-| `test_mcp.py` | A real stdio MCP server's tools are listed and callable. A broken server is skipped with a warning. |
+| `test_mcp.py` | A real stdio MCP server (MCP SDK 2.x) has its tools listed with their schemas and called. A tool that fails raises its error. A broken server is skipped with a warning. |
 | `test_evals.py` | Eval tasks pass or fail on the answer, or on a blocked tool in the trace. |
 | `test_e2e.py` | The real CLI and SDK over HTTP, against the local stub in `tests/stub_api.py`. Covers a tool round trip and a blocked `ask` tool. |
 
@@ -322,15 +322,15 @@ These are small samples from one machine. The step-cap eval depends on the model
 
 Known failure modes, and what the code does about each.
 
-- **A tool that hangs keeps running in its thread.** The model gets a timeout after `AGENT_TOOL_TIMEOUT_S`, but the thread is not killed. Tested: a slow tool gets a timeout error. Upgrade: run tools in a subprocess.
+- **A tool that hangs keeps running in its thread.** The model gets a timeout after `AGENT_TOOL_TIMEOUT_S`, but the thread is not killed. Tested: a slow tool gets a timeout error. A production runtime would run each tool in a subprocess so it can be killed.
 - **A timed-out tool can still finish.** The model is told it may still finish, so it checks before retrying.
-- **MCP starts a server for every call.** This is correct but slow. Upgrade: one long-lived session per server. Not measured yet.
+- **MCP starts a server for every call.** This is correct but slow. A production runtime would keep one session open per server.
 - **Prompt injection still works.** A file can tell the model to ignore its rules. The policy still applies to every call, so an injected instruction can only use allowed tools. A harmful tool that is allowed can still do damage. A file the model reads is also sent to the model provider.
 - **The workspace is the folder you run from.** Run it from the project folder. The home folder and `/` are refused, but other wide folders are not.
 - **A crash during a tool call runs that tool again on resume.** Each tool is its own step with a checkpoint, so `resume` skips tools that already finished and re-runs only the one in flight. A tool that has side effects may still run twice. Tested: resume after a model crash, and resume after a tool crash.
 - **Old checkpoints do not resume.** The checkpoint format gained `pending` and `results`. A checkpoint saved before that change will fail to resume.
 - **Only text and tool-use blocks are kept.** If extended thinking is turned on for Claude, thinking blocks are dropped and the API may reject the next request. Thinking is off in this code.
-- **The step cap counts model calls, not cost.** There is no budget yet.
+- **The step cap counts model calls, not cost.** There is no token or money budget.
 - **`ask` needs a terminal.** A non-interactive run denies every `ask` tool. This is the safe default, but `write_file` never works in CI.
 - **Live model results vary between runs.** Only one local model has been run through the eval. See [Eval results](#eval-results).
 
@@ -351,16 +351,9 @@ Use a framework when you need its features, such as parallel branches, managed m
 
 The words used in the code and docs are in [CONTEXT.md](CONTEXT.md).
 
-## Roadmap
-
-- Run tools in subprocesses, so a hung tool can be killed.
-- One long-lived MCP session per server.
-- A cost budget next to the step cap.
-- Eval results for more models, so the numbers are not from one model.
-
 ## Contributing
 
-Open an issue first for anything bigger than a bug fix. Every change needs the checks in [How to test](#how-to-test) to pass. CI runs them on Python 3.11 and 3.12, scans for secrets, and audits the dependencies. A new tool needs a policy row, a test and an eval task. `pre-commit` is not a project dependency. Install it with `pipx install pre-commit` to use the hooks in `.pre-commit-config.yaml`.
+This is a learning project, and issues and pull requests are welcome. Open an issue first for anything bigger than a bug fix. Every change needs the checks in [How to test](#how-to-test) to pass. CI runs them on Python 3.11 and 3.12, scans for secrets, and audits the dependencies. A new tool needs a policy row, a test and an eval task. `pre-commit` is not a project dependency. Install it with `pipx install pre-commit` to use the hooks in `.pre-commit-config.yaml`.
 
 ## Security
 

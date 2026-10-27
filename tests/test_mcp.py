@@ -10,12 +10,19 @@ ECHO = str(Path(__file__).parent / "fixtures" / "echo_server.py")
 
 def test_server_tools_are_exposed_with_prefix() -> None:
     tools = mcp_tools([ServerSpec("demo", sys.executable, (ECHO,))])
-    assert [t.name for t in tools] == ["demo__echo"]
+    assert [t.name for t in tools] == ["demo__echo", "demo__fail"]
+    assert tools[0].input_schema["properties"]["text"]["type"] == "string"
 
 
 def test_server_tool_can_be_called() -> None:
     tool = mcp_tools([ServerSpec("demo", sys.executable, (ECHO,))])[0]
     assert tool.run({"text": "hello"}) == "hello"
+
+
+def test_a_failing_server_tool_raises_its_error() -> None:
+    tool = mcp_tools([ServerSpec("demo", sys.executable, (ECHO,))])[1]
+    with pytest.raises(RuntimeError, match="boom"):
+        tool.run({})
 
 
 def test_load_servers_reads_config(tmp_path: Path) -> None:

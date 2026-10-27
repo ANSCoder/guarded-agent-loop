@@ -55,7 +55,7 @@ async def _call(spec: ServerSpec, tool: str, args: dict[str, Any]) -> str:
             await session.initialize()
             result = await session.call_tool(tool, args)
     text = "".join(getattr(c, "text", "") for c in result.content)
-    if result.isError:
+    if result.is_error:
         raise RuntimeError(text)
     return text
 
@@ -81,7 +81,7 @@ def mcp_tools(servers: list[ServerSpec]) -> list[Tool]:
                 Tool(
                     name=f"{spec.name}__{remote.name}",
                     description=remote.description or "",
-                    input_schema=remote.inputSchema,
+                    input_schema=remote.input_schema,
                     run=_runner(spec, remote.name),
                 )
             )
